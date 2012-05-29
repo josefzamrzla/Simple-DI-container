@@ -9,12 +9,18 @@ class Configuration_Builder
      */
     private $loader;
 
+    private $environment;
+
     /**
      * @param Configuration_Loader $loader
      */
-    public function __construct(Configuration_Loader $loader)
+    public function __construct(Configuration_Loader $loader, $environment = null)
     {
         $this->loader = $loader;
+
+        if ($environment) {
+            $this->environment = $environment;
+        }
     }
 
     /**

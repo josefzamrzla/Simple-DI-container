@@ -4,122 +4,171 @@
  */
 class Configuration_JsonLoader implements  Configuration_Loader
 {
+    const DEFAULT_ENVIRONMENT_NAME = "default";
+
     private $serviceConf = array();
     private $properties = array();
-    private $files = array();
+    private $sums = array();
+    private $defaultEnvironment = null;
 
     /**
-     * @param string $file
+     * @param string $content
      * @return Configuration_JsonLoader
      */
-    public function addFile($file)
+    public function addConf($content)
     {
-        if (file_exists($file) && !in_array($file, $this->files)) {
-            $this->files[] = $file;
-            $this->mergeConfiguration();
+        $checksum = md5($content);
+        if (!in_array($checksum, $this->sums)) {
+            $this->sums[] = $checksum;
+            $this->mergeConfiguration($content);
         }
 
         return $this;
     }
 
     /**
-     * @return array
-     */
-    public function getFiles()
-    {
-        return $this->files;
-    }
-
-    /**
-     * @param $serviceKey
+     * @param string $serviceKey
+     * @param string $environment
      * @return string|bool
      */
-    public function loadClass($serviceKey)
+    public function loadClass($serviceKey, $environment = null)
     {
-        if (isset($this->serviceConf[$serviceKey]['class']))
-            return $this->serviceConf[$serviceKey]['class'];
+        $env = $this->getEnvironment($environment);
+
+        if (isset($this->serviceConf[$env][$serviceKey]['class']))
+            return $this->serviceConf[$env][$serviceKey]['class'];
 
         return false;
     }
 
     /**
-     * @param $serviceKey
+     * @param string $serviceKey
+     * @param string $environment
      * @return bool
      */
-    public function loadIsSingle($serviceKey)
+    public function loadIsSingle($serviceKey, $environment = null)
     {
-        if (isset($this->serviceConf[$serviceKey]['single']))
-            return $this->serviceConf[$serviceKey]['single'];
+        $env = $this->getEnvironment($environment);
+
+        if (isset($this->serviceConf[$env][$serviceKey]['single']))
+            return $this->serviceConf[$env][$serviceKey]['single'];
 
         return false;
     }
 
     /**
-     * @param $serviceKey
+     * @param string $serviceKey
+     * @param string $environment
      * @return array
      */
-    public function loadParameters($serviceKey)
+    public function loadParameters($serviceKey, $environment = null)
     {
-        if (isset($this->serviceConf[$serviceKey]['parameters']))
-            return $this->serviceConf[$serviceKey]['parameters'];
+        $env = $this->getEnvironment($environment);
+
+        if (isset($this->serviceConf[$env][$serviceKey]['parameters']))
+            return $this->serviceConf[$env][$serviceKey]['parameters'];
 
         return array();
     }
 
     /**
-     * @param $propertyKey
+     * @param string $propertyKey
+     * @param string $environment
      * @return string|bool
      */
-    public function loadProperty($propertyKey)
+    public function loadProperty($propertyKey, $environment = null)
     {
-        if (isset($this->properties[$propertyKey]))
-            return $this->properties[$propertyKey];
+        $env = $this->getEnvironment($environment);
+
+        if (isset($this->properties[$env][$propertyKey]))
+            return $this->properties[$env][$propertyKey];
 
         return false;
     }
 
-    private function mergeConfiguration()
+    /**
+     * @return string
+     */
+    public function getDefaultEnvironment()
     {
-        foreach ($this->files as $file) {
-            if (strlen($content = file_get_contents($file))) {
-                $this->doMerge($content);
+        if ($this->defaultEnvironment === null) {
+
+            if (count($this->serviceConf) && count($envs = array_keys($this->serviceConf))) {
+                $this->defaultEnvironment = array_shift($envs);
+            } elseif (count($this->properties) && count($envs = array_keys($this->properties))) {
+                $this->defaultEnvironment = array_shift($envs);
+            } else {
+                $this->defaultEnvironment = self::DEFAULT_ENVIRONMENT_NAME;
             }
         }
+
+        return $this->defaultEnvironment;
+    }
+
+    /**
+     * @param string $environment
+     * @return string
+     */
+    private function getEnvironment($environment)
+    {
+        return is_null($environment)? $this->getDefaultEnvironment() : $environment;
     }
 
     /**
      * @param string $content
      */
-    private function doMerge($content)
+    private function mergeConfiguration($content)
     {
         $json = json_decode($content, true);
 
+        if (isset($json['services']) || isset($json['properties'])) {
+            $this->mergeEnvironmentParts(self::DEFAULT_ENVIRONMENT_NAME, $json);
+        } else {
+            foreach($json as $environment => $environmentJson) {
+                if (strpos($environment, ":") !== false) {
+                    $environmentParts = explode(":", $environment);
+                    $parentEnv = trim($environmentParts[0]);
+                    $environment = trim($environmentParts[1]);
+
+                    if (isset($json[$parentEnv])) {
+                        // if env. inherits settings, load parent settings first
+                        $this->mergeEnvironmentParts($environment, $json[$parentEnv]);
+                    }
+                }
+
+                $this->mergeEnvironmentParts($environment, $environmentJson);
+            }
+        }
+    }
+
+    private function mergeEnvironmentParts($environment, array $json)
+    {
         if (isset($json['services'])) {
-            $this->mergeServices($json);
+            $this->mergeServices($environment, $json);
         }
 
         if (isset($json['properties'])) {
-            $this->mergeProperties($json);
+            $this->mergeProperties($environment, $json);
         }
     }
 
     /**
      * @param array $json
      */
-    private function mergeServices(array $json)
+    private function mergeServices($environment, array $json)
     {
         foreach ($json['services'] as $serviceKey => $serviceConf) {
-            $this->serviceConf[$serviceKey] = $serviceConf;
+            $this->serviceConf[$environment][$serviceKey] = $serviceConf;
         }
     }
 
     /**
      * @param array $json
      */
-    private function mergeProperties(array $json)
+    private function mergeProperties($environment, array $json)
     {
         foreach ($json['properties'] as $propertyKey => $property) {
-            $this->properties[$propertyKey] = $property;
+            $this->properties[$environment][$propertyKey] = $property;
         }
     }
 }

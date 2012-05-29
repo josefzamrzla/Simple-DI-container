@@ -11,12 +11,19 @@ class Container
 
     private $sigles = array();
 
+    private $environment;
+
     /**
      * @param Configuration $configuration
+     * @param string $environment
      */
-    public function __construct(Configuration $configuration)
+    public function __construct(Configuration $configuration, $environment = null)
     {
         $this->configuration = $configuration;
+
+        if ($environment) {
+            $this->environment = $environment;
+        }
     }
 
     /**
