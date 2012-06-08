@@ -2,7 +2,7 @@
 /**
  * @package Configuration_Loader
  */
-class Configuration_JsonLoader implements  Configuration_Loader
+class Configuration_JsonLoader implements Configuration_Loader
 {
     const DEFAULT_ENVIRONMENT_NAME = "default";
 
@@ -106,6 +106,14 @@ class Configuration_JsonLoader implements  Configuration_Loader
     }
 
     /**
+     * @return array
+     */
+    public function getKnownEnvironments()
+    {
+        return array_unique(array_merge(array_keys($this->serviceConf), array_keys($this->properties)));
+    }
+
+    /**
      * @param string $environment
      * @return string
      */
@@ -127,11 +135,12 @@ class Configuration_JsonLoader implements  Configuration_Loader
             foreach($json as $environment => $environmentJson) {
                 if (strpos($environment, ":") !== false) {
                     $environmentParts = explode(":", $environment);
-                    $parentEnv = trim($environmentParts[0]);
-                    $environment = trim($environmentParts[1]);
+                    $parentEnv = trim($environmentParts[1]);
+                    $environment = trim($environmentParts[0]);
 
                     if (isset($json[$parentEnv])) {
                         // if env. inherits settings, load parent settings first
+
                         $this->mergeEnvironmentParts($environment, $json[$parentEnv]);
                     }
                 }

@@ -1,8 +1,8 @@
 <?php
 /**
- * @package Configuration
+ * @package Service_Configuration
  */
-class Service_Configuration
+class Service_Configuration implements Service_ConfigurationInterface
 {
     private $class;
     private $params = array();

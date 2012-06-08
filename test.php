@@ -1,8 +1,12 @@
 <?php
+require_once "autoload.php";
+
 $loader = new Configuration_JsonLoader();
-$loader->addFile("conf/di.conf.json");
+$loader->addConf(file_get_contents("conf/di.conf.json"));
 
-$builder = new Configuration_Builder($loader, ENV);
+var_dump($loader->getDefaultEnvironment());
 
-$container = new Container(new Configuration($builder));
+/*$builder = new Configuration_Builder($loader, ENV);
+
+$container = new Container(new Configuration($builder));*/
 

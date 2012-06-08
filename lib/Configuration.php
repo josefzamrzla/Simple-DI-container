@@ -27,8 +27,7 @@ class Configuration
     public function getServiceConfiguration($serviceKey)
     {
         if (!isset($this->servisesCache[$serviceKey])) {
-            $this->servisesCache[$serviceKey] =
-                $this->builder->getServiceConfiguration($serviceKey);
+            $this->servisesCache[$serviceKey] = $this->builder->getServiceConfiguration($serviceKey);
         }
 
         return $this->servisesCache[$serviceKey];
@@ -41,8 +40,7 @@ class Configuration
     public function getProperty($propertyKey)
     {
         if (!isset($this->propertiesCache[$propertyKey])) {
-            $this->propertiesCache[$propertyKey] =
-                $this->builder->getProperty($propertyKey);
+            $this->propertiesCache[$propertyKey] = $this->builder->getProperty($propertyKey);
         }
 
         return $this->propertiesCache[$propertyKey];

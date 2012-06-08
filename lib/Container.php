@@ -32,13 +32,11 @@ class Container
      */
     public function getService($serviceKey)
     {
-        $serviceConf =
-            $this->configuration->getServiceConfiguration($serviceKey);
+        $serviceConf = $this->configuration->getServiceConfiguration($serviceKey);
 
         if ($serviceConf->isSingle()) {
             if (!isset($this->sigles[$serviceKey])) {
-                $this->sigles[$serviceKey] =
-                    $this->buildService($serviceConf);
+                $this->sigles[$serviceKey] = $this->buildService($serviceConf);
             }
 
             return $this->sigles[$serviceKey];
@@ -65,8 +63,7 @@ class Container
     {
         if (!$serviceConf->getClass()) {
             throw new InvalidArgumentException(
-                "No class defined for service: " .
-                $serviceConf->getServiceKey());
+                "No class defined for service: " .$serviceConf->getServiceKey());
         }
 
         $params = array();
@@ -82,7 +79,30 @@ class Container
             }
         }
 
-        $reflection = new ReflectionClass($serviceConf->getClass());
-        return $reflection->newInstanceArgs($params);
+        return $this->buildInstance($serviceConf->getClass(), $params);
+
+    }
+
+    /**
+     * @param string $className
+     * @param array $params
+     * @return object
+     */
+    private function buildInstance($className, $params)
+    {
+        // Hack to avoid Reflection in most common use cases
+        switch (count($params)) {
+            case 0:
+                return new $className();
+            case 1:
+                return new $className($params[0]);
+            case 2:
+                return new $className($params[0], $params[1]);
+            case 3:
+                return new $className($params[0], $params[1], $params[2]);
+            default:
+                $reflection = new \ReflectionClass($className);
+                return $reflection->newInstanceArgs($params);
+        }
     }
 }
