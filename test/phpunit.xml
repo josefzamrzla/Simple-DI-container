@@ -4,4 +4,12 @@
     <testsuite name="DI container">
         <directory>./</directory>
     </testsuite>
+
+    <logging>
+        <log type="coverage-html" target="./../coverage" title="DI container"
+            charset="UTF-8" yui="true" highlight="true" lowUpperBound="35" highLowerBound="70"/>
+
+        <log type="coverage-clover" target="./../logs/clover.xml"/>
+        <log type="junit" target="./../logs/junit.xml" logIncompleteSkipped="false"/>
+    </logging>
 </phpunit>
