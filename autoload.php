@@ -7,14 +7,13 @@ spl_autoload_register(
         static $classes = null;
         if ($classes === null) {
             $classes = array(
-                'configuration' => '/lib/Configuration.php',
-                'configuration_builder' => '/lib/Configuration/Builder.php',
-                'configuration_jsonloader' => '/lib/Configuration/JsonLoader.php',
-                'configuration_loader' => '/lib/Configuration/Loader.php',
-                'container' => '/lib/Container.php',
-                'dummycontainer' => '/lib/DummyContainer.php',
-                'naivecontainer' => '/lib/NaiveContainer.php',
-                'service_configuration' => '/lib/Service/Configuration.php'
+                'di\\configuration' => '/lib/Configuration.php',
+                'di\\configuration_builder' => '/lib/Configuration/Builder.php',
+                'di\\configuration_jsonloader' => '/lib/Configuration/JsonLoader.php',
+                'di\\configuration_loader' => '/lib/Configuration/Loader.php',
+                'di\\container' => '/lib/Container.php',
+                'di\\service_configuration' => '/lib/Service/Configuration.php',
+                'di\\service_configurationinterface' => '/lib/Service/ConfigurationInterface.php'
             );
         }
         $cn = strtolower($class);
