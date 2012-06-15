@@ -2,6 +2,8 @@
 /**
  * @package Configuration_Loader
  */
+namespace Di;
+
 interface Configuration_Loader
 {
     /**

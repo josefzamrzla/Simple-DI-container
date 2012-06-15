@@ -2,6 +2,8 @@
 /**
  * @package Configuration_Loader
  */
+namespace Di;
+
 class Configuration_JsonLoader implements Configuration_Loader
 {
     const DEFAULT_ENVIRONMENT_NAME = "default";

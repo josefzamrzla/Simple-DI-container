@@ -2,6 +2,8 @@
 /**
  * @package Configuration
  */
+namespace Di;
+
 class Configuration
 {
     /**

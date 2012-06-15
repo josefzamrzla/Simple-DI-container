@@ -2,6 +2,8 @@
 /**
  * @package Service_Configuration
  */
+namespace Di;
+
 class Service_Configuration implements Service_ConfigurationInterface
 {
     private $class;

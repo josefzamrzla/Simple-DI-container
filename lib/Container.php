@@ -2,6 +2,8 @@
 /**
  * @package Container
  */
+namespace Di;
+
 class Container
 {
     /**
@@ -57,12 +59,12 @@ class Container
     /**
      * @param Service_Configuration $serviceConf
      * @return object
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function buildService(Service_Configuration $serviceConf)
     {
         if (!$serviceConf->getClass()) {
-            throw new InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 "No class defined for service: " .$serviceConf->getServiceKey());
         }
 

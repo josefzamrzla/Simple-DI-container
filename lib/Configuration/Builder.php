@@ -2,6 +2,8 @@
 /**
  * @package Configuration_Builder
  */
+namespace Di;
+
 class Configuration_Builder
 {
     /**
@@ -38,27 +40,27 @@ class Configuration_Builder
      */
     public function getProperty($propertyKey)
     {
-        return $this->loader->loadProperty($propertyKey);
+        return $this->loader->loadProperty($propertyKey, $this->environment);
     }
 
     /**
      * @param $serviceKey
      * @return Service_Configuration
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function buildServiceConfiguration($serviceKey)
     {
         $serviceConf = new Service_Configuration($serviceKey);
 
-        if (strlen($class = $this->loader->loadClass($serviceKey))) {
+        if (strlen($class = $this->loader->loadClass($serviceKey, $this->environment))) {
             $serviceConf->setClass($class);
         } else {
-            throw new InvalidArgumentException("No class defined for service: " . $serviceKey);
+            throw new \InvalidArgumentException("No class defined for service: " . $serviceKey);
         }
 
-        $serviceConf->setIsSingle($this->loader->loadIsSingle($serviceKey));
+        $serviceConf->setIsSingle($this->loader->loadIsSingle($serviceKey, $this->environment));
 
-        foreach ($this->loader->loadParameters($serviceKey) as $param) {
+        foreach ($this->loader->loadParameters($serviceKey, $this->environment) as $param) {
             $serviceConf->addParam($param);
         }
 

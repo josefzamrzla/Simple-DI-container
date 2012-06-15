@@ -2,6 +2,8 @@
 /**
  * @package Service_Configuration
  */
+namespace Di;
+
 interface Service_ConfigurationInterface
 {
     /**
