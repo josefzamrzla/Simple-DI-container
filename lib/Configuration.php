@@ -4,7 +4,7 @@
  */
 namespace Di;
 
-class Configuration
+class Configuration implements ConfigurationInterface
 {
     /**
      * @var Configuration_Builder

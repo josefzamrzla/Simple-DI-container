@@ -11,6 +11,7 @@ spl_autoload_register(
                 'di\\configuration_builder' => '/lib/Configuration/Builder.php',
                 'di\\configuration_jsonloader' => '/lib/Configuration/JsonLoader.php',
                 'di\\configuration_loader' => '/lib/Configuration/Loader.php',
+                'di\\configurationinterface' => '/lib/ConfigurationInterface.php',
                 'di\\container' => '/lib/Container.php',
                 'di\\service_configuration' => '/lib/Service/Configuration.php',
                 'di\\service_configurationinterface' => '/lib/Service/ConfigurationInterface.php'
