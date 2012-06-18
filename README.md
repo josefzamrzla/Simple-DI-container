@@ -6,7 +6,11 @@ Lightweight implementation of configurable dependency injection container.
 Configuration
 -------------
 
-Configuration supports multiple environments including it's inheritance.
+Configuration supports multiple environments including it's inheritance. Each environment section has 2 sections: `services`
+and `properties`. Section `services` keeps configuration of instantiable services (classes), section `properties` can be used
+for named constants.
+
+
 
 ``` json
 {
