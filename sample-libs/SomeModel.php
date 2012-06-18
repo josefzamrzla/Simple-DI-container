@@ -1,9 +1,9 @@
 <?php
 class SomeModel
 {
-    private $db;
-    private $log;
-    private $val;
+    public $db;
+    public $log;
+    public $val;
 
     public function __construct(Db $db, Logger $log, $val)
     {

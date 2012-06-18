@@ -1,19 +1,12 @@
 <?php
-function __autoload($class)
-{
-    if (file_exists(__DIR__."/lib/" . str_replace("_", "/", $class) . ".php")) {
-        require_once __DIR__."/lib/" . str_replace("_", "/", $class) . ".php";
-    } elseif (file_exists(__DIR__."/sample-libs/" . str_replace("_", "/", $class) . ".php")) {
-        require_once __DIR__."/sample-libs/" . str_replace("_", "/", $class) . ".php";
-    }
-}
+require_once "autoload.php";
 
 $loader = new Configuration_JsonLoader();
-$loader->addFile("conf/di.conf.json");
+$loader->addConf(file_get_contents("conf/di.conf.json"));
 
-$builder = new Configuration_Builder($loader);
+var_dump($loader->getDefaultEnvironment());
 
-$container = new Container(new Configuration($builder));
+/*$builder = new Configuration_Builder($loader, ENV);
 
-var_dump($container->getService("somemodel"));
+$container = new Container(new Configuration($builder));*/
 

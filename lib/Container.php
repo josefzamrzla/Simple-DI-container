@@ -2,19 +2,24 @@
 /**
  * @package Container
  */
+namespace Di;
+
 class Container
 {
     /**
-     * @var Configuration
+     * @var ConfigurationInterface
      */
     private $configuration;
 
     private $sigles = array();
 
+    private $overloaded = array();
+
     /**
-     * @param Configuration $configuration
+     * @param ConfigurationInterface $configuration
+     * @param string $environment
      */
-    public function __construct(Configuration $configuration)
+    public function __construct(ConfigurationInterface $configuration)
     {
         $this->configuration = $configuration;
     }
@@ -25,19 +30,32 @@ class Container
      */
     public function getService($serviceKey)
     {
-        $serviceConf =
-            $this->configuration->getServiceConfiguration($serviceKey);
+        $serviceConf = $this->configuration->getServiceConfiguration($serviceKey);
 
-        if ($serviceConf->isSingle()) {
+        // if instance has to be single or is overloaded, take it from instance cache
+        if (in_array($serviceKey, $this->overloaded) || $serviceConf->isSingle()) {
             if (!isset($this->sigles[$serviceKey])) {
-                $this->sigles[$serviceKey] =
-                    $this->buildService($serviceConf);
+                $this->sigles[$serviceKey] = $this->buildService($serviceConf);
             }
 
             return $this->sigles[$serviceKey];
         }
 
         return $this->buildService($serviceConf);
+    }
+
+    /**
+     * Set overloaded service (eg. mock)
+     * @param $serviceKey
+     * @param $instance Service instance
+     */
+    public function setService($serviceKey, $instance)
+    {
+        if (!in_array($serviceKey, $this->overloaded)) {
+            $this->overloaded[] = $serviceKey;
+        }
+
+        $this->sigles[$serviceKey] = $instance;
     }
 
     /**
@@ -52,14 +70,13 @@ class Container
     /**
      * @param Service_Configuration $serviceConf
      * @return object
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function buildService(Service_Configuration $serviceConf)
     {
         if (!$serviceConf->getClass()) {
-            throw new InvalidArgumentException(
-                "No class defined for service: " .
-                $serviceConf->getServiceKey());
+            throw new \InvalidArgumentException(
+                "No class defined for service: " .$serviceConf->getServiceKey());
         }
 
         $params = array();
@@ -75,7 +92,30 @@ class Container
             }
         }
 
-        $reflection = new ReflectionClass($serviceConf->getClass());
-        return $reflection->newInstanceArgs($params);
+        return $this->buildInstance($serviceConf->getClass(), $params);
+
+    }
+
+    /**
+     * @param string $className
+     * @param array $params
+     * @return object
+     */
+    private function buildInstance($className, $params)
+    {
+        // Hack to avoid Reflection in most common use cases
+        switch (count($params)) {
+            case 0:
+                return new $className();
+            case 1:
+                return new $className($params[0]);
+            case 2:
+                return new $className($params[0], $params[1]);
+            case 3:
+                return new $className($params[0], $params[1], $params[2]);
+            default:
+                $reflection = new \ReflectionClass($className);
+                return $reflection->newInstanceArgs($params);
+        }
     }
 }

@@ -1,5 +1,5 @@
 <?php
-class Db
+class TDb
 {
     public $name;
     public $pwd;

@@ -1,13 +1,15 @@
 <?php
 /**
- * @package Configuration
+ * @package Service_Configuration
  */
-class Service_Configuration
+namespace Di;
+
+class Service_Configuration implements Service_ConfigurationInterface
 {
-    private $class;
+    private $class = null;
     private $params = array();
     private $single = false;
-    private $serviceKey;
+    private $serviceKey = null;
 
     /**
      * @param string $serviceKey
@@ -70,7 +72,9 @@ class Service_Configuration
      */
     public function addParam($param)
     {
-        $this->params[] = $param;
+        if (!in_array($param, $this->params)) {
+            $this->params[] = $param;
+        }
     }
 
     /**

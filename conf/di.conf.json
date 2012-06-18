@@ -1,41 +1,36 @@
 {
-    "name":"DI configuration",
-    "version":"0.0.1",
-    "author":{
-        "name":"Josef Zamrzla",
-        "www":"http://www.phpscrum.cz",
-        "twitter":"@JosefZamrzla",
-        "github":"https://github.com/josefzamrzla"
-    },
-    "parameter-comments":[
-        "&name = link to defined service",
-        "@name = link to defined properties",
-        "foo = concrete value"
-    ],
-
-    "services":{
-        "db":{
-            "class":"Db",
-            "single":true,
-            "parameters":[
-                "@dbname",
-                "@dbpwd"
-            ]
+    "production":{
+        "services":{
+            "db":{
+                "class":"Db",
+                "single":true,
+                "parameters":[
+                    "@dbname",
+                    "@dbpwd"
+                ]
+            },
+            "logger":{
+                "class":"Logger"
+            },
+            "somemodel":{
+                "class":"SomeModel",
+                "parameters":[
+                    "&db",
+                    "&logger",
+                    "someval"
+                ]
+            }
         },
-        "logger":{
-            "class":"Logger"
-        },
-        "somemodel":{
-            "class":"SomeModel",
-            "parameters":[
-                "&db",
-                "&logger",
-                "someval"
-            ]
+        "properties":{
+            "dbname":"pepan",
+            "dbpwd":"heslo"
         }
     },
-    "properties":{
-        "dbname":"pepan",
-        "dbpwd":"heslo"
+    "testing : production":{
+
+        "properties":{
+            "dbpwd":"testing_heslo"
+        }
     }
+
 }
