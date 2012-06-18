@@ -32,7 +32,6 @@ class Configuration_JsonLoader implements Configuration_Loader
      * @param string $serviceKey
      * @param string $environment
      * @return string
-     * @throws \InvalidArgumentException
      */
     public function loadClass($serviceKey, $environment = null)
     {
@@ -41,7 +40,7 @@ class Configuration_JsonLoader implements Configuration_Loader
         if (isset($this->serviceConf[$env][$serviceKey]['class']))
             return $this->serviceConf[$env][$serviceKey]['class'];
 
-        throw new \InvalidArgumentException("Unknown service or undefined class");
+        return null;
     }
 
     /**
@@ -148,7 +147,6 @@ class Configuration_JsonLoader implements Configuration_Loader
 
                     if (isset($json[$parentEnv])) {
                         // if env. inherits settings, load parent settings first
-
                         $this->mergeEnvironmentParts($environment, $json[$parentEnv]);
                     }
                 }
@@ -175,7 +173,7 @@ class Configuration_JsonLoader implements Configuration_Loader
     private function mergeServices($environment, array $json)
     {
         foreach ($json['services'] as $serviceKey => $serviceConf) {
-            if (isset($this->serviceConf[$environment][$serviceKey])) {
+            if (isset($this->serviceConf[$environment][$serviceKey]) && is_array($this->serviceConf[$environment][$serviceKey])) {
                 $serviceConf = array_merge($this->serviceConf[$environment][$serviceKey], $serviceConf);
             }
 

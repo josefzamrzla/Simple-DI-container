@@ -13,6 +13,8 @@ class Container
 
     private $sigles = array();
 
+    private $overloaded = array();
+
     private $environment;
 
     /**
@@ -36,7 +38,8 @@ class Container
     {
         $serviceConf = $this->configuration->getServiceConfiguration($serviceKey);
 
-        if ($serviceConf->isSingle()) {
+        // if instance has to be single or is overloaded, take it from instance cache
+        if ($serviceConf->isSingle() || in_array($serviceKey, $this->overloaded)) {
             if (!isset($this->sigles[$serviceKey])) {
                 $this->sigles[$serviceKey] = $this->buildService($serviceConf);
             }
@@ -45,6 +48,20 @@ class Container
         }
 
         return $this->buildService($serviceConf);
+    }
+
+    /**
+     * Set overloaded service (eg. mock)
+     * @param $serviceKey
+     * @param $instance Service instance
+     */
+    public function setService($serviceKey, $instance)
+    {
+        if (!in_array($serviceKey, $this->overloaded)) {
+            $this->overloaded[] = $serviceKey;
+        }
+
+        $this->sigles[$serviceKey] = $instance;
     }
 
     /**

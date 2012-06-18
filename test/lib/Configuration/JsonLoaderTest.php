@@ -163,15 +163,8 @@ class Configuration_JsonLoaderTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals("Db", $this->loader->loadClass("db"));
 
-        try {
-            $this->assertEquals("Db", $this->loader->loadClass("__invalidName"));
-            $this->fail("Expected InvalidArgumentException");
-        } catch(\InvalidArgumentException $e) {}
-
-        try {
-            $this->assertEquals("Db", $this->loader->loadClass("db", "__invalidEnv"));
-            $this->fail("Expected InvalidArgumentException");
-        } catch(\InvalidArgumentException $e) {}
+        $this->assertNull($this->loader->loadClass("__invalidName"));
+        $this->assertNull($this->loader->loadClass("db", "__invalidEnv"));
     }
 
     public function testLoadClassSimplyOverloadedEnv()
@@ -246,8 +239,285 @@ class Configuration_JsonLoaderTest extends PHPUnit_Framework_TestCase
         $this->assertEquals("Db", $this->loader->loadClass("db", "testing"));
     }
 
-    // loadClass
-    // loadIsSingle
-    // loadParameters
+    public function testIsSingleWithoutExplicitellyDefined()
+    {
+        $json = '{
+            "production":{
+                "services":{
+                    "db":{
+                        "class":"Db"
+                    }
+                }
+            }
+        }';
 
+        $this->loader->addConf($json);
+        $this->assertFalse($this->loader->loadIsSingle("db"));
+    }
+
+    public function testIsSingleExplicitellySetToFalse()
+    {
+        $json = '{
+            "production":{
+                "services":{
+                    "db":{
+                        "class":"Db",
+                        "single": false
+                    }
+                }
+            }
+        }';
+
+        $this->loader->addConf($json);
+        $this->assertFalse($this->loader->loadIsSingle("db"));
+    }
+
+    public function testIsSingleExplicitellySetToTrue()
+    {
+        $json = '{
+            "production":{
+                "services":{
+                    "db":{
+                        "class":"Db",
+                        "single": true
+                    }
+                }
+            }
+        }';
+
+        $this->loader->addConf($json);
+        $this->assertTrue($this->loader->loadIsSingle("db"));
+    }
+
+    public function testIsSingleRedefinedWithoutChange()
+    {
+        $json = '{
+            "production":{
+                "services":{
+                    "db":{
+                        "class":"Db",
+                        "single": true
+                    }
+                }
+            },
+            "testing : production":{
+                "services":{
+                    "db":{
+
+                    }
+                }
+            }
+        }';
+
+        $this->loader->addConf($json);
+        $this->assertTrue($this->loader->loadIsSingle("db", "testing"));
+    }
+
+    public function testIsSingleRedefinedWithChange()
+    {
+        $json = '{
+            "production":{
+                "services":{
+                    "db":{
+                        "class":"Db",
+                        "single": true
+                    }
+                }
+            },
+            "testing : production":{
+                "services":{
+                    "db":{
+                        "single": false
+                    }
+                }
+            }
+        }';
+
+        $this->loader->addConf($json);
+        $this->assertFalse($this->loader->loadIsSingle("db", "testing"));
+    }
+
+    public function testLoadParametersWithoutDefinition()
+    {
+        $json = '{
+            "production":{
+                "services":{
+                    "db":{
+                        "class":"Db",
+                        "single": true
+                    }
+                }
+            }
+        }';
+
+        $this->loader->addConf($json);
+        $this->assertSame(array(), $this->loader->loadParameters("db"));
+        $this->assertSame(array(), $this->loader->loadParameters("db", "production"));
+    }
+
+    public function testLoadParametersWithEmptyContent()
+    {
+        $json = '{
+            "production":{
+                "services":{
+                    "db":{
+                        "class":"Db",
+                        "single": true,
+                        "parameters":[]
+                    }
+                }
+            }
+        }';
+
+        $this->loader->addConf($json);
+        $this->assertSame(array(), $this->loader->loadParameters("db"));
+        $this->assertSame(array(), $this->loader->loadParameters("db", "production"));
+    }
+
+    public function testLoadParameters()
+    {
+        $json = '{
+            "production":{
+                "services":{
+                    "db":{
+                        "class":"Db",
+                        "single": true,
+                        "parameters":[
+                            "first",
+                            "&second",
+                            "@third"
+                        ]
+                    }
+                }
+            }
+        }';
+
+        $this->loader->addConf($json);
+        $this->assertSame(array("first", "&second", "@third"), $this->loader->loadParameters("db"));
+        $this->assertSame(array("first", "&second", "@third"), $this->loader->loadParameters("db", "production"));
+    }
+
+    public function testLoadParametersRedefinedWithoutDefinition()
+    {
+        $json = '{
+            "production":{
+                "services":{
+                    "db":{
+                        "class":"Db",
+                        "single": true,
+                        "parameters":[
+                            "first",
+                            "&second",
+                            "@third"
+                        ]
+                    }
+                }
+            },
+            "testing : production":{
+                "services":{
+                    "db":{
+                        "class":"Db",
+                        "single": true
+
+                    }
+                }
+            }
+        }';
+
+        $this->loader->addConf($json);
+        $this->assertSame(array("first", "&second", "@third"), $this->loader->loadParameters("db", "testing"));
+    }
+
+    public function testLoadParametersRedefinedWithEmptyDefinition()
+    {
+        $json = '{
+            "production":{
+                "services":{
+                    "db":{
+                        "class":"Db",
+                        "single": true,
+                        "parameters":[
+                            "first",
+                            "&second",
+                            "@third"
+                        ]
+                    }
+                }
+            },
+            "testing : production":{
+                "services":{
+                    "db":{
+                        "class":"Db",
+                        "single": true,
+                        "parameters": []
+                    }
+                }
+            }
+        }';
+
+        $this->loader->addConf($json);
+        $this->assertSame(array(), $this->loader->loadParameters("db", "testing"));
+    }
+
+    public function testLoadParametersRedefinedWithDefinition()
+    {
+        $json = '{
+            "production":{
+                "services":{
+                    "db":{
+                        "class":"Db",
+                        "single": true,
+                        "parameters":[
+                            "first",
+                            "&second",
+                            "@third"
+                        ]
+                    }
+                }
+            },
+            "testing : production":{
+                "services":{
+                    "db":{
+                        "class":"Db",
+                        "single": true,
+                        "parameters": [
+                            "@first"
+                        ]
+                    }
+                }
+            }
+        }';
+
+        $this->loader->addConf($json);
+        $this->assertSame(array("@first"), $this->loader->loadParameters("db", "testing"));
+    }
+
+    public function testLoadConfigurationWithoutEnvironment()
+    {
+        $json = '{
+            "services":{
+                "db":{
+                    "class":"Db",
+                    "single": true,
+                    "parameters":[
+                        "first",
+                        "&second",
+                        "@third"
+                    ]
+                }
+            },
+            "properties":{
+                "dbname": "database_name",
+                "dbpwd": "database_password"
+            }
+        }';
+
+        $this->loader->addConf($json);
+
+        $this->assertEquals("Db", $this->loader->loadClass("db"));
+        $this->assertTrue($this->loader->loadIsSingle("db"));
+        $this->assertSame(array("first", "&second", "@third"), $this->loader->loadParameters("db"));
+        $this->assertEquals("database_name", $this->loader->loadProperty("dbname"));
+        $this->assertEquals("database_password", $this->loader->loadProperty("dbpwd"));
+    }
 }
